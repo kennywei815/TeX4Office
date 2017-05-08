@@ -1,0 +1,9 @@
+Q1: UI中沒有 "增益集" -> New/Edit LaTeX Display
+
+A1: 開發人員 -> 巨集 -> "Auto_Open" 或 "InitializeApp"
+
+
+
+Q2: Word、Excel、PowerPoint有時插入圖片的解析度會很差
+
+A2: 您需要關閉檔案中對圖片的壓縮，請參考："關閉圖片的壓縮"：https://support.office.com/zh-tw/article/%E9%97%9C%E9%96%89%E5%9C%96%E7%89%87%E7%9A%84%E5%A3%93%E7%B8%AE-81a6b603-0266-4451-b08e-fc1bf58da658

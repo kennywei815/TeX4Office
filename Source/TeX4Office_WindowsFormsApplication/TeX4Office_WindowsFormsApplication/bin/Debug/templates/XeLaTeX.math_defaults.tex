@@ -1,0 +1,16 @@
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+%\usepackage{ctex}
+\usepackage{amsmath}
+%\setCJKmainfont{標楷體}
+\setCJKmainfont{新細明體}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\pagestyle{empty}
+\begin{document}
+中文
+
+$\sqrt{2}_{\text{中文}}$  %%% 直接用amsmath中定義的\text即可在上下標中寫中文
+
+\end{document}
