@@ -23,11 +23,11 @@ You need to install these packages first:
 
 If you know how to use LaTeX, it is very easy to use TeX4Office. Select "New/Edit LaTeX display" from the "Add-Ins" tab of the ribbon, and you will get a editor where you can type your equation:
 
-![alt text](https://github.com/kennywei815/TeX4Office/master/Editor.png)
+![alt text](https://github.com/kennywei815/TeX4Office/blob/master/Editor.png)
 
 Type any valid LaTeX code, and click on "Output". TeX4Office will compile your code into LaTeX, generate an image from it and insert it into Office.
 
-![alt text](https://github.com/kennywei815/TeX4Office/master/Office_Add-Ins.png)
+![alt text](https://github.com/kennywei815/TeX4Office/blob/master/Office_Add-Ins.png)
 
 If you need to change something in the equation, just select the image, then click on "New/Edit LaTeX display" again, and the TeX4Office editor will re-appear so you can edit the LaTeX code.
 
