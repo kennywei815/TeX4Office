@@ -67,17 +67,100 @@ Const ImportImage As Integer = 1
 '==============================================================================================================================================
 
 Public Sub EditLaTeX()
+
     NewEditPicture TeX4Office
+    
 End Sub
 
 
 Public Sub InsertPicture()
+
     NewEditPicture ImportImage
+    
 End Sub
 
 
-Public Sub NewEditPicture(PROGRAM As Integer)
 
+
+
+
+
+
+
+
+
+
+
+
+Sub test_batch()
+
+    EditLaTeX_Batch "tex4office_obj25386.tex", "C:\\Users\\Kenny\\Desktop\\test.tex"
+    
+    
+    'tex4office_obj17479.tex
+
+End Sub
+
+
+
+
+
+Public Sub EditLaTeX_Batch(ShapeName As String, TeXFilePath As String)
+    '[TODO]: write the content of TeXFile into this shape.AlternativeText
+    
+#If PLATFORM = PowerPoint Then
+    Set sld = Application.ActiveWindow.View.Slide
+    Set osld = ActiveWindow.Selection.SlideRange(1)
+    Set AllShapes = ActiveWindow.Selection.SlideRange.Shapes
+            
+#ElseIf PLATFORM = Word Then
+    Set sld = ActiveDocument
+    Set osld = ActiveDocument
+    Set AllShapes = ActiveDocument.Shapes
+            
+#ElseIf PLATFORM = Excel Then
+    Set sld = ActiveSheet
+    Set osld = ActiveSheet
+    Set AllShapes = ActiveSheet.Shapes
+            
+#End If
+
+
+    '==============================================================================================================================================
+    ' Step 1: Select the shape called ShapeName
+    '==============================================================================================================================================
+    
+    '[TODO]: check ShapeName exists???
+    
+    Dim oldShape As Shape
+    
+    Set oldShape = AllShapes(ShapeName)
+    
+    oldShape.Select
+    
+    
+    '==============================================================================================================================================
+    ' Step 2: Read code from TeX file, and save code & other setting to newShape.AlternativeText
+    '==============================================================================================================================================
+    Dim code As String
+    
+    ReadFromFile_UTF8 code, TeXFilePath
+    
+    Call AddTagsToShape(oldShape, code, ShapeName)
+        
+    
+    '==============================================================================================================================================
+    ' Step 3:
+    '==============================================================================================================================================
+    NewEditPicture TeX4Office, True
+    
+End Sub
+
+
+Public Sub NewEditPicture(PROGRAM As Integer, Optional BatchMode As Boolean = False)
+    '[DONE]: implement Batch_Mode
+    
+    '[TODO]: implement ßÔ¿…¶W
     '[TODO]: [Konwn Issue] In Excel, we don't know how to get OldGroup & OldGroup.GroupItems. Currently we can't restore group information of oldShape in Excel.
     
     
@@ -180,7 +263,7 @@ Public Sub NewEditPicture(PROGRAM As Integer)
     Dim code As String
     
 If PROGRAM = TeX4Office Then
-    LaTeX2PNG_Func oldShape, TempDir, FilePrefix, code
+    LaTeX2PNG_Func oldShape, TempDir, FilePrefix, code, BatchMode
     
 ElseIf PROGRAM = ImportImage Then
     Image2PNG_Func oldShape, TempDir, FilePrefix, code
@@ -189,9 +272,14 @@ End If
     
     sourceFileName = FilePrefix & ".tex"
     pictureFileName = FilePrefix & ".png"
+    tmpFilePath = FilePrefix & ".*"
+    
+    sourceFilePath = TempDir & FilePrefix & ".tex"
+    pictureFilePath = TempDir & FilePrefix & ".png"
+    tmpFilePath = TempDir & FilePrefix & ".*"
     
     
-    If Dir(TempDir & pictureFileName) = Empty Then
+    If Dir(pictureFilePath) = Empty Then
         Exit Sub
     End If
     
@@ -199,12 +287,34 @@ End If
     '==============================================================================================================================================
     ' Step 3: Get scaling factors from oldShape or according to current DPI and the font size
     '==============================================================================================================================================
+    Dim tScaleWidth As Single, tScaleHeight As Single
+    
     default_screen_dpi = 96
     OutputDpi = 600    '[TODO]: read OutputDpi from TeX4Office Editor's config.json
     OldDpi = OutputDpi '[TODO]: read OldDpi    from shape.AlternativeText ???
     
     MagicScalingFactorPNG = default_screen_dpi / OutputDpi
     
+    If selectionIsLaTeXShape() Then
+    
+        With oldShape
+            ' Save current size
+            oldShapeHeight = .Height
+            oldShapeWidth = .Width
+        
+            ' Original size
+            .ScaleHeight 1#, msoTrue
+            .ScaleWidth 1#, msoTrue
+            
+            ' Calculate relative size
+            tScaleHeight = oldShapeHeight / .Height
+            tScaleWidth = oldShapeWidth / .Width
+                        
+            ' Restore sizing
+            .ScaleHeight tScaleHeight, msoTrue
+            .ScaleWidth tScaleWidth, msoTrue
+        End With
+    End If
     
     '==============================================================================================================================================
     ' Step 4: Insert PNG image and rescale it
@@ -216,12 +326,13 @@ End If
     'Delete temporary files
     Set fs = CreateObject("Scripting.FileSystemObject")
     
-    If Dir(TempDir & FilePrefix & ".*") <> Empty Then
-        fs.DeleteFile TempDir & FilePrefix & ".*"
+    If Dir(tmpFilePath) <> Empty Then
+        fs.DeleteFile tmpFilePath
     End If
     
     ' Resize to the true size of the png file and adjust using the manual scaling factors set in Main Settings
     With newShape
+        ' Original size
         .ScaleHeight 1#, msoTrue
         .ScaleWidth 1#, msoTrue
         
@@ -230,8 +341,9 @@ End If
         ' Apply scaling factors
         If selectionIsLaTeXShape() Then
             '[TODO]: read current & old DPI
-            .ScaleHeight oldShape.Height / .Height * OldDpi / OutputDpi, msoTrue
-            .ScaleWidth oldShape.Width / .Width * OldDpi / OutputDpi, msoTrue
+            
+            .ScaleHeight tScaleHeight * OldDpi / OutputDpi, msoTrue
+            .ScaleWidth tScaleWidth * OldDpi / OutputDpi, msoTrue
         Else
             '[TODO]: read DPI       from TeX4Office Editor's config.json
             '[TODO]: read PointSize from TeX4Office Editor's config.json

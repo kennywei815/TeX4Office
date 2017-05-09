@@ -42,7 +42,7 @@ Attribute VB_Name = "Image2PNG"
 Sub Image2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, code As String)
     '[TODO]: save code when done
     
-    Dim sourceFileName As String, pictureFileName As String, Command As String
+    Dim sourceFileName As String, pictureFileName As String, pictureFilePath As String, Command As String
     
     
     TempDir = "C:\Temp\" '[TODO]: need to be portable to Mac OS X
@@ -59,6 +59,7 @@ Sub Image2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, c
     Debug.Assert StartWith(FilePrefix, "importImage_plus_obj")
     
     pictureFileName = FilePrefix & ".png"
+    pictureFilePath = TempDir & FilePrefix & ".png"
     
     '==============================================================================================================================================
     ' Step 2:  If TempDir doesn't exist, create one
@@ -90,7 +91,7 @@ Sub Image2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, c
             ' Display paths of each file selected
             For lngCount = 1 To .SelectedItems.Count
             
-                Command = "cmd /C " & Environ("APPDATA") & "\Microsoft\AddIns\TeX4Office_Editor\ImageMagick-portable\" & "convert   -units PixelsPerInch  -density 1200 -resize 1200x1200 " & QuotedStr(.SelectedItems(lngCount)) & " " & QuotedStr(TempDir & pictureFileName)
+                Command = "cmd /C " & Environ("APPDATA") & "\Microsoft\AddIns\TeX4Office_Editor\ImageMagick-portable\" & "convert   -units PixelsPerInch  -density 1200 -resize 1200x1200 " & QuotedStr(.SelectedItems(lngCount)) & " " & QuotedStr(pictureFilePath)
                 
                 '[TODO]: Show all supported input file format of convert.exe
                 RunCmd Command, True, vbNormalFocus
@@ -104,7 +105,7 @@ Sub Image2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, c
     '==============================================================================================================================================
     ' Step 6: If the user chooses to cancel the file dialog, exit the subroutine
     '==============================================================================================================================================
-    If Dir(TempDir & pictureFileName) = Empty Then
+    If Dir(pictureFilePath) = Empty Then
         Exit Sub
     End If
     

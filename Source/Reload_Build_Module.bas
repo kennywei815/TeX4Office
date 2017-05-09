@@ -62,15 +62,15 @@ Public Sep As String
 Sub Common_Vars()
 
 #If PLATFORM = PowerPoint Then
-    WorkDir = ActivePresentation.Path
+    WorkDir = ActivePresentation.path
     Set VBComponents = ActivePresentation.VBProject.VBComponents
             
 #ElseIf PLATFORM = Word Then
-    WorkDir = ActiveDocument.Path
+    WorkDir = ActiveDocument.path
     Set VBComponents = ActiveDocument.VBProject.VBComponents
             
 #ElseIf PLATFORM = Excel Then
-    WorkDir = ActiveWorkbook.Path
+    WorkDir = ActiveWorkbook.path
     Set VBComponents = ActiveWorkbook.VBProject.VBComponents
     
 #End If
