@@ -1,9 +1,8 @@
-Q1: UI中沒有 "增益集" -> New/Edit LaTeX Display
+Q1: UI中沒有看到 "增益集" -> New/Edit LaTeX Display？
+A1: 切換至Ribbon面板上的 "開發人員" 分頁 -> 按下 "巨集" -> 選 "Auto_Open" 或 "InitializeApp"，按下 "執行"
 
-A1: 開發人員 -> 巨集 -> "Auto_Open" 或 "InitializeApp"
+Q2: Word、Excel、PowerPoint有時插入圖片的解析度會很差？
+A2: 您需要在 *所有新文件* *關閉對圖片的壓縮*，請參考："關閉圖片的壓縮"：https://support.office.com/zh-tw/article/%E9%97%9C%E9%96%89%E5%9C%96%E7%89%87%E7%9A%84%E5%A3%93%E7%B8%AE-81a6b603-0266-4451-b08e-fc1bf58da658
 
-
-
-Q2: Word、Excel、PowerPoint有時插入圖片的解析度會很差
-
-A2: 您需要關閉檔案中對圖片的壓縮，請參考："關閉圖片的壓縮"：https://support.office.com/zh-tw/article/%E9%97%9C%E9%96%89%E5%9C%96%E7%89%87%E7%9A%84%E5%A3%93%E7%B8%AE-81a6b603-0266-4451-b08e-fc1bf58da658
+Q3: 為何有時我有選取舊的圖片要更換圖片，但最後卻是插入新的圖片？
+A3: TeX4Office和ImportImage++判斷更新舊圖或是直接插入新圖片的機制是：舊圖片為 Picture 物件且由 TeX4Office 和 ImportImage++ 插入(物件名的前綴為 tex4office_obj 或是 importImage_plus_obj )

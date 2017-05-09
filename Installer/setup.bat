@@ -24,21 +24,9 @@ echo ================================================================
 echo [提示] 安裝完成。等待 PowerPoint 關閉後安裝程式會自動結束。
 echo ================================================================
 
-IF EXIST "C:\Program Files\Microsoft Office" (
-	C:
-	cd "C:\Program Files\Microsoft Office\Office*"
-	powerpnt.exe
-) ELSE (
-
-	REM IF EXIST "C:\Program Files (x86)\Microsoft Office" (
-		C:
-		cd "C:\Program Files (x86)\Microsoft Office\Office*"
-		powerpnt.exe
-
-	REM ) ELSE (
-		REM echo " "
-		REM echo [錯誤] 在 C:\Program Files\ 及 C:\Program Files(x86)\ 找不到已安裝的 Microsoft Office！
-		REM echo " "
-	REM )
+C:
+cd "C:\Program Files\Microsoft Office\Office*"
+IF EXIST "powerpnt.exe"  powerpnt.exe
+cd "C:\Program Files (x86)\Microsoft Office\Office*"
+IF EXIST "powerpnt.exe"  powerpnt.exe
 	
-)
