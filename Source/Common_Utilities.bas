@@ -90,7 +90,7 @@ Sub RemoveMenuItem(itemText As String)
 
 End Sub
 
-Sub ReadLaTeXFromFile(code As String, TempDir As String, FilePrefix As String)
+Sub ReadFromFile_UTF8(code As String, path As String)
     Const ForReading = 1, ForWriting = 2, ForAppending = 3
     
     'UseUTF8
@@ -100,7 +100,7 @@ Sub ReadLaTeXFromFile(code As String, TempDir As String, FilePrefix As String)
     
     objStream.Charset = "utf-8"
     objStream.Open
-    objStream.LoadFromFile (TempDir & FilePrefix & ".tex")
+    objStream.LoadFromFile (path)
     
     code = objStream.ReadText()
     
@@ -108,7 +108,7 @@ Sub ReadLaTeXFromFile(code As String, TempDir As String, FilePrefix As String)
     Set objStream = Nothing
 End Sub
 
-Sub WriteLaTeXToFile(code As String, TempDir As String, FilePrefix As String)
+Sub WriteToFile_UTF8(code As String, path As String)
     Const ForReading = 1, ForWriting = 2, ForAppending = 3
     
     'UseUTF8
@@ -130,7 +130,7 @@ Sub WriteLaTeXToFile(code As String, TempDir As String, FilePrefix As String)
         .Flush
         .Close
     End With
-    BinaryStream.SaveToFile TempDir & FilePrefix & ".tex", 2 'Save binary data To disk
+    BinaryStream.SaveToFile path, 2 'Save binary data To disk
     BinaryStream.Flush
     BinaryStream.Close
     Set fs = Nothing
@@ -222,6 +222,69 @@ Function ToArray(c As Collection) As Variant
     Next
     ToArray = a
 End Function
+
+
+Function PackToHeader(code As String) As String
+
+    Lines = Split(code, vbNewLine)
+    
+    PackToHeader = "%%% HEADER %%%" & vbNewLine
+    
+    For i = 1 To Lines.Count
+        PackToHeader = PackToHeader & "%" & Lines(i) & vbNewLine
+    Next
+    
+    PackToHeader = PackToHeader & "%%% END HEADER %%%"
+    
+End Function
+
+
+Function UnpackFromHeader(code As String) As String
+
+    Paragraph = Split(code, "%%% END HEADER %%%")
+    header = Replace(Paragraph(1), "%%% HEADER %%%", "")
+    
+    Lines = Split(header, vbNewLine)
+    UnpackFromHeader = ""
+    
+    For i = 1 To Lines.Count
+        UnpackFromHeader = UnpackFromHeader & Replace(Expression:=Lines(i), Find:="%", Replace:="", Count:=1) & vbNewLine
+    Next
+    
+End Function
+
+
+Function ReadConfig(code As String, engine As String, dpi As Integer, fileName As String)
+    Lines = Split(code, vbNewLine)
+    
+    For i = 1 To Lines.Count
+        Key_Value = Split(Lines(i), ",")
+        
+        Key = Key_Value(1)
+        Value = Key_Value(2)
+        
+        Select Case Key
+           Case "engine"
+              engine = Value
+           Case "dpi"
+              dpi = CInt(Value)
+           Case "fileName"
+              fileName = Value
+           'Case Else
+           
+        End Select
+    Next
+End Function
+
+
+Function WriteConfig(code As String, engine As String, dpi As Integer, fileName As String)
+    
+    code = "engine," & engine & vbNewLine _
+         & "dpi," & dpi & vbNewLine _
+         & "fileName," & fileName & vbNewLine
+    
+End Function
+
 
 Function RunCmd(strCMD As String, Optional waitOnReturn As Boolean = True, Optional windowStyle As Integer = 1)
     ' Prerequisite: need to import "Windows Script Host Object Model"  (in "Tools" -> "References...")

@@ -208,7 +208,7 @@ Function generateLaTeXName() As String
     
     Do
         id = Int((RAND_MAX * Rnd()) + 1)                   ' Generate random value between 1 and RAND_MAX+1.
-        generateLaTeXName = "tex4office_obj" & id & ".tex"
+        generateLaTeXName = "tex4office_obj" & id
 
     Loop While IsInShapes(AllShapes, generateLaTeXName)
     
@@ -316,7 +316,7 @@ Function generateImagePlusName() As String
     
     Do
         id = Int((RAND_MAX * Rnd()) + 1)                   ' Generate random value between 1 and RAND_MAX+1.
-        generateImagePlusName = "importImage_plus_obj" & id & ".tex"
+        generateImagePlusName = "importImage_plus_obj" & id
 
     Loop While IsInShapes(AllShapes, generateImagePlusName)
     
@@ -327,7 +327,7 @@ End Function
 '                                            AddDisplayShape Function
 '                        Add picture as shape taking care of not inserting it in empty placeholder
 '==============================================================================================================================================
-Function AddDisplayShape(PROGRAM As Integer, Path As String, PosX As Single, PosY As Single) As Shape
+Function AddDisplayShape(PROGRAM As Integer, path As String, PosX As Single, PosY As Single) As Shape
 ' from http://www.vbaexpress.com/forum/showthread.php?47687-Addpicture-adds-the-picture-to-a-placeholder-rather-as-a-new-shape
 ' modified based on http://www.vbaexpress.com/forum/showthread.php?37561-Delete-empty-placeholders
     
@@ -352,10 +352,10 @@ Function AddDisplayShape(PROGRAM As Integer, Path As String, PosX As Single, Pos
 
 
 If PROGRAM = TeX4Office Then
-    Set AddDisplayShape = osld.Shapes.AddPicture(Path, msoFalse, msoTrue, PosX, PosY, -1, -1)
+    Set AddDisplayShape = osld.Shapes.AddPicture(path, msoFalse, msoTrue, PosX, PosY, -1, -1)
     
 ElseIf PROGRAM = ImportImage Then
-    Set AddDisplayShape = osld.Shapes.AddPicture(Path, msoFalse, msoTrue, PosX, PosY, 1200, 1200)
+    Set AddDisplayShape = osld.Shapes.AddPicture(path, msoFalse, msoTrue, PosX, PosY, 1200, 1200)
     
 End If
     

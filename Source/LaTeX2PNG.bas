@@ -39,12 +39,12 @@ Attribute VB_Name = "LaTeX2PNG"
 
 
 
-Sub LaTeX2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, code As String)
+Sub LaTeX2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, code As String, Optional BatchMode As Boolean = False)
     ' Run LaTeX Editor
     
     '[TODO]: [FIXME] Error occurs when we change the file name of the Word, Excel, or PowerPoint file.
     
-    Dim sourceFileName As String, pictureFileName As String
+    Dim sourceFileName As String, pictureFileName As String, sourceFilePath As String, pictureFilePath As String
     
     TempDir = "C:\Temp\" '[TODO]: need to be portable to Mac OS X
     
@@ -65,6 +65,9 @@ Sub LaTeX2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, c
     sourceFileName = FilePrefix & ".tex"
     pictureFileName = FilePrefix & ".png"
     
+    sourceFilePath = TempDir & FilePrefix & ".tex"
+    pictureFilePath = TempDir & FilePrefix & ".png"
+    
     '==============================================================================================================================================
     ' Step 2:  If TempDir doesn't exist, create one
     '==============================================================================================================================================
@@ -83,13 +86,13 @@ Sub LaTeX2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, c
     ' Step 4: Delete old files
     '==============================================================================================================================================
     ' Delete tex file
-    If Dir(TempDir & sourceFileName) <> Empty Then
-        fs.DeleteFile TempDir & sourceFileName
+    If Dir(sourceFilePath) <> Empty Then
+        fs.DeleteFile sourceFilePath
     End If
     
     'Delete png file
-    If Dir(TempDir & pictureFileName) <> Empty Then
-        fs.DeleteFile TempDir & pictureFileName
+    If Dir(pictureFilePath) <> Empty Then
+        fs.DeleteFile pictureFilePath
     End If
     
 
@@ -98,21 +101,28 @@ Sub LaTeX2PNG_Func(oldShape As Shape, TempDir As String, FilePrefix As String, c
     '==============================================================================================================================================
     If selectionIsLaTeXShape() Then
         code = oldShape.AlternativeText
-        WriteLaTeXToFile code, TempDir, FilePrefix
+        WriteToFile_UTF8 code, sourceFilePath
     End If
     
-    RunCmd "TeX4Office_WindowsFormsApplication.exe  " & TempDir & sourceFileName, True, vbNormalFocus
+    If BatchMode Then
+        RunCmd "TeX4Office_Editor.exe  --batch-mode " & sourceFilePath, True, vbNormalFocus
+        'RunCmd "TeX4Office_Editor.exe  " & sourceFilePath, True, vbNormalFocus
+        'RunCmd "TeX4Office_WindowsFormsApplication.exe  --batch-mode " & sourceFilePath, True, vbNormalFocus
+    Else
+        RunCmd "TeX4Office_Editor.exe  " & sourceFilePath, True, vbNormalFocus
+        'RunCmd "TeX4Office_WindowsFormsApplication.exe  " & sourceFilePath, True, vbNormalFocus
+    End If
     
     
     '==============================================================================================================================================
     ' Step 6: If the user chooses not to generate new PNG file, exit the subroutine
     '==============================================================================================================================================
-    If Dir(TempDir & pictureFileName) = Empty Then
+    If Dir(pictureFilePath) = Empty Then
         Exit Sub
     End If
     
     '==============================================================================================================================================
     ' Step 7: Read LaTeX code from tex file
     '==============================================================================================================================================
-    ReadLaTeXFromFile code, TempDir, FilePrefix
+    ReadFromFile_UTF8 code, sourceFilePath
 End Sub
