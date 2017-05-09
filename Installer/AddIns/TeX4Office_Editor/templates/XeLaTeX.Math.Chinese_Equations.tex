@@ -1,0 +1,17 @@
+\documentclass{article}
+\usepackage{fontspec}
+\usepackage{xeCJK}        %%% Macros for Chinese/Japanese/Korean processing
+\usepackage{amsmath}
+
+\setCJKmainfont{新細明體}
+\XeTeXlinebreaklocale "zh"
+\XeTeXlinebreakskip = 0pt plus 1pt
+\pagestyle{empty}
+
+\begin{document}
+
+中文
+
+$\sqrt{2}_{\text{中文}}$  %%% With the "amsmath" package, now you can include CJK charaters in subscription and superscriptiion (in the "\text" tag)
+
+\end{document}

@@ -1,18 +1,56 @@
 Attribute VB_Name = "Main_Helpers"
-'''''==============================================================================================================================================
-'''''                                            Platform-dependent Macros
-'''''==============================================================================================================================================
+' 2017(c) TeX4Office
+' Developer: Cheng-Kuan Wei
+' URL: https://github.com/kennywei815/tex4office
+'
+' Licensed to the Apache Software Foundation (ASF) under one
+' or more contributor license agreements.  See the NOTICE file
+' distributed with this work for additional information
+' regarding copyright ownership.  The ASF licenses this file
+' to you under the Apache License, Version 2.0 (the
+' "License"); you may not use this file except in compliance
+' with the License.  You may obtain a copy of the License at
+'
+'   http://www.apache.org/licenses/LICENSE-2.0
+'
+' This file incorporates work from Jonathan Le Roux and Zvika
+' Ben-Haim's IguanaTeX project which is originally released
+' under the Creative Commons Attribution 3.0 License; you may
+' not use this file except in compliance with the License.
+' You may obtain a copy of the License at
+'
+'   https://creativecommons.org/licenses/by/3.0/
+'
+' Unless required by applicable law or agreed to in writing,
+' software distributed under the License is distributed on an
+' "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+' KIND, either express or implied.  See the License for the
+' specific language governing permissions and limitations
+' under the License.
+
+
+
+
+'*****************************************************************************
+'                           Main_Helpers Module
+'                    Helper functions for the Main module
+'*****************************************************************************
+
+
+
+
+'==============================================================================================================================================
+'                                            Platform Constants
+'==============================================================================================================================================
 #Const PowerPoint = 0
 #Const Word = 1
 #Const Excel = 2
 
-#Const PLATFORM = PowerPoint
+#Const PLATFORM = Word
 
 
-#Const TeX4Office = 0
-#Const ImportImage = 1
-
-#Const PROGRAM = ImportImage
+Const TeX4Office As Integer = 0
+Const ImportImage As Integer = 1
 
 
 
@@ -28,9 +66,7 @@ Public Const InvalidName As String = "!@#$#%^$&^%*&&^*(*&)"
 #End If
 
 
-' Get current slide, it will be used to group ranges
-
-'TODO: 減少使用AllShapes，多用SelShapes
+' Get current slide or document
 Public AllShapes As Shapes
 
 #If PLATFORM = PowerPoint Then
@@ -49,9 +85,9 @@ Public AllShapes As Shapes
 #End If
 
 
-'''''==============================================================================================================================================
-'''''                                            Plateform-dependent Helper Functions
-'''''==============================================================================================================================================
+'==============================================================================================================================================
+'                                            Plateform-dependent Helper Functions
+'==============================================================================================================================================
 Function selectionIsGroup() As Boolean
     Set Sel = ActiveWindow.Selection
     
@@ -86,7 +122,7 @@ Function selectionIsLaTeXShape() As Boolean
             selectionIsLaTeXShape = True
             
         ElseIf Sel.ShapeRange.Type = msoGroup And Sel.hasChildShapeRange Then
-            selectionIsLaTeXShape = isLaTeXShape(Sel.ChildShapeRange(1)) '當選取物件為Group或Group內物件，需要isLaTeXShape()幫忙判斷
+            selectionIsLaTeXShape = isLaTeXShape(Sel.ChildShapeRange(1)) 'When selection is a Group or an item in a Group, we need to use isLaTeXShape() to determine whether selection is a LaTeX shape.
             
         Else
             selectionIsLaTeXShape = False
@@ -105,7 +141,7 @@ Function selectionIsLaTeXShape() As Boolean
             selectionIsLaTeXShape = True
 
         ElseIf Sel.ShapeRange.Type = msoGroup And Sel.ChildShapeRange.Count >= 1 Then  '[Known Issue]: In Word, Sel.HasChildShapeRange & Sel.ShapeRange.GroupItems does not work properly.
-            selectionIsLaTeXShape = isLaTeXShape(Sel.ChildShapeRange(1)) '當選取物件為Group或Group內物件，需要isLaTeXShape()幫忙判斷
+            selectionIsLaTeXShape = isLaTeXShape(Sel.ChildShapeRange(1)) 'When selection is a Group or an item in a Group, we need to use isLaTeXShape() to determine whether selection is a LaTeX shape.
             
         Else
             selectionIsLaTeXShape = False
@@ -117,30 +153,34 @@ Function selectionIsLaTeXShape() As Boolean
 
 
 #ElseIf PLATFORM = Excel Then
-    '[NOTE] Excel 沒有 Selection 物件，所以要用 TypeName(Sel)、TypeOf Sel 看目前選取的物件型別
+    '[NOTE] In Excel, we don't have Selection type, so we need to use TypeName(Sel) & TypeOf Sel to get the type information of current selection.
     
-    'MsgBox "TypeName(Sel)=" & TypeName(Sel) 'DEBUG
-    '單一: Picture
-    '群組內: Picture
-    '群組: GroupObject
+    '====================================================================================== BEGIN DEBUG ======================================================================================
+    'MsgBox "TypeName(Sel)=" & TypeName(Sel)
+    'Single shape:  Picture
+    'In a group:    Picture
+    'Group:         GroupObject
+    '====================================================================================== END DEBUG ======================================================================================
     
     isShape = (TypeOf Sel Is Picture)
     
+    '====================================================================================== BEGIN DEBUG ======================================================================================
     'MsgBox "isShape=" & isShape
     'MsgBox "Sel.ShapeRange.Count=" & Sel.ShapeRange.Count
     ''MsgBox "Sel.hasChildShapeRange=" & Sel.hasChildShapeRange
     ''MsgBox "Sel.ChildShapeRange.Count=" & Sel.ChildShapeRange.Count
     
     'MsgBox "TypeName(Sel.ShapeRange(1))=" & TypeName(Sel.ShapeRange(1))
-    '單一: Shape
-    '群組內: Shape
-    '群組: Shape
+    'Single shape:  Shape
+    'In a group:    Shape
+    'Group:         Shape
         
     'MsgBox "Sel.ShapeRange(1).Type=" & Sel.ShapeRange(1).Type
-    '*****和PowerPoint、Word中相同*****
-    '單一: msoPicture
-    '群組內: msoPicture
-    '群組: msoGroup
+    '***** Same as in PowerPoint & Word *****
+    'Single shape:  msoPicture
+    'In a group:    msoPicture
+    'Group:         msoGroup
+    '====================================================================================== END DEBUG ======================================================================================
     
     If isShape Then
         selectionIsLaTeXShape = isLaTeXShape(Sel.ShapeRange(1))
@@ -156,13 +196,7 @@ End Function
 
 Function isLaTeXShape(s As Shape) As Boolean
     '[DONE] check if oldShape.Name has .tex suffix or oldShape.AlternativeText contains tex code
-#If PROGRAM = TeX4Office Then
     isLaTeXShape = (StartWith(s.Name, "tex4office_obj") And s.AlternativeText <> "")
-    
-#ElseIf PROGRAM = ImportImage Then
-    isLaTeXShape = (StartWith(s.Name, "importImage_plus_obj") And s.AlternativeText <> "")
-    
-#End If
     
 End Function
 
@@ -174,22 +208,126 @@ Function generateLaTeXName() As String
     
     Do
         id = Int((RAND_MAX * Rnd()) + 1)                   ' Generate random value between 1 and RAND_MAX+1.
-#If PROGRAM = TeX4Office Then
         generateLaTeXName = "tex4office_obj" & id & ".tex"
-    
-#ElseIf PROGRAM = ImportImage Then
-        generateLaTeXName = "importImage_plus_obj" & id & ".tex"
-    
-#End If
 
     Loop While IsInShapes(AllShapes, generateLaTeXName)
     
 End Function
 
 
+Function selectionIsImagePlusShape() As Boolean
+    Set Sel = ActiveWindow.Selection
+    
+    Dim isShape As Boolean
 
-' Add picture as shape taking care of not inserting it in empty placeholder
-Function AddDisplayShape(Path As String, PosX As Single, PosY As Single) As Shape
+
+
+#If PLATFORM = PowerPoint Then
+    isShape = (Sel.Type = ppSelectionShapes)
+    
+    If isShape Then
+        If Sel.ShapeRange.Type = msoPicture Then
+            selectionIsImagePlusShape = True
+            
+        ElseIf Sel.ShapeRange.Type = msoGroup And Sel.hasChildShapeRange Then
+            selectionIsImagePlusShape = isImagePlusShape(Sel.ChildShapeRange(1)) 'When selection is a Group or an item in a Group, we need to use isImagePlusShape() to determine whether selection is a ImagePlus shape.
+            
+        Else
+            selectionIsImagePlusShape = False
+        End If
+    Else
+        selectionIsImagePlusShape = False
+    End If
+
+
+
+#ElseIf PLATFORM = Word Then
+    isShape = (Sel.Type = wdSelectionShape)
+    
+    If isShape Then
+        If Sel.ShapeRange.Type = msoPicture Then
+            selectionIsImagePlusShape = True
+
+        ElseIf Sel.ShapeRange.Type = msoGroup And Sel.ChildShapeRange.Count >= 1 Then  '[Known Issue]: In Word, Sel.HasChildShapeRange & Sel.ShapeRange.GroupItems does not work properly.
+            selectionIsImagePlusShape = isImagePlusShape(Sel.ChildShapeRange(1)) 'When selection is a Group or an item in a Group, we need to use isImagePlusShape() to determine whether selection is a ImagePlus shape.
+            
+        Else
+            selectionIsImagePlusShape = False
+        End If
+    Else
+        selectionIsImagePlusShape = False
+    End If
+
+
+
+#ElseIf PLATFORM = Excel Then
+    '[NOTE] In Excel, we don't have Selection type, so we need to use TypeName(Sel) & TypeOf Sel to get the type information of current selection.
+    
+    '====================================================================================== BEGIN DEBUG ======================================================================================
+    'MsgBox "TypeName(Sel)=" & TypeName(Sel)
+    'Single shape:  Picture
+    'In a group:    Picture
+    'Group:         GroupObject
+    '====================================================================================== END DEBUG ======================================================================================
+    
+    isShape = (TypeOf Sel Is Picture)
+    
+    '====================================================================================== BEGIN DEBUG ======================================================================================
+    'MsgBox "isShape=" & isShape
+    'MsgBox "Sel.ShapeRange.Count=" & Sel.ShapeRange.Count
+    ''MsgBox "Sel.hasChildShapeRange=" & Sel.hasChildShapeRange
+    ''MsgBox "Sel.ChildShapeRange.Count=" & Sel.ChildShapeRange.Count
+    
+    'MsgBox "TypeName(Sel.ShapeRange(1))=" & TypeName(Sel.ShapeRange(1))
+    'Single shape:  Shape
+    'In a group:    Shape
+    'Group:         Shape
+        
+    'MsgBox "Sel.ShapeRange(1).Type=" & Sel.ShapeRange(1).Type
+    '***** Same as in PowerPoint & Word *****
+    'Single shape:  msoPicture
+    'In a group:    msoPicture
+    'Group:         msoGroup
+    '====================================================================================== END DEBUG ======================================================================================
+    
+    If isShape Then
+        selectionIsImagePlusShape = isImagePlusShape(Sel.ShapeRange(1))
+    Else
+        selectionIsImagePlusShape = False
+    End If
+
+
+#End If
+
+End Function
+
+
+Function isImagePlusShape(s As Shape) As Boolean
+    '[DONE] check if oldShape.Name has .tex suffix or oldShape.AlternativeText contains tex code
+    isImagePlusShape = (StartWith(s.Name, "importImage_plus_obj") And s.AlternativeText <> "")
+    
+End Function
+
+
+Function generateImagePlusName() As String
+    Const RAND_MAX As Integer = 32767
+
+    Dim id As Integer
+    
+    Do
+        id = Int((RAND_MAX * Rnd()) + 1)                   ' Generate random value between 1 and RAND_MAX+1.
+        generateImagePlusName = "importImage_plus_obj" & id & ".tex"
+
+    Loop While IsInShapes(AllShapes, generateImagePlusName)
+    
+End Function
+
+
+'==============================================================================================================================================
+'                                            AddDisplayShape Function
+'                        Add picture as shape taking care of not inserting it in empty placeholder
+'==============================================================================================================================================
+Function AddDisplayShape(PROGRAM As Integer, Path As String, PosX As Single, PosY As Single) As Shape
 ' from http://www.vbaexpress.com/forum/showthread.php?47687-Addpicture-adds-the-picture-to-a-placeholder-rather-as-a-new-shape
 ' modified based on http://www.vbaexpress.com/forum/showthread.php?37561-Delete-empty-placeholders
     
@@ -213,13 +351,13 @@ Function AddDisplayShape(Path As String, PosX As Single, PosY As Single) As Shap
 #End If
 
 
-#If PROGRAM = TeX4Office Then
+If PROGRAM = TeX4Office Then
     Set AddDisplayShape = osld.Shapes.AddPicture(Path, msoFalse, msoTrue, PosX, PosY, -1, -1)
     
-#ElseIf PROGRAM = ImportImage Then
+ElseIf PROGRAM = ImportImage Then
     Set AddDisplayShape = osld.Shapes.AddPicture(Path, msoFalse, msoTrue, PosX, PosY, 1200, 1200)
     
-#End If
+End If
     
 #If PLATFORM = PowerPoint Or PLATFORM = Excel Then
     For Each oshp In osld.Shapes
@@ -238,11 +376,13 @@ End Function
 
 
 
+'==============================================================================================================================================
+'                                            MoveAnimation Function
+'                                 Move the animation settings of oldShape to newShape
+'==============================================================================================================================================
 Sub MoveAnimation(oldShape As Shape, newShape As Shape)
-    ' Move the animation settings of oldShape to newShape
     
 #If PLATFORM = PowerPoint Then
-    'With ActiveWindow.Selection.SlideRange(1).TimeLine
     With osld.TimeLine
         Dim eff As Effect
         For Each eff In .MainSequence
@@ -254,12 +394,14 @@ Sub MoveAnimation(oldShape As Shape, newShape As Shape)
     
 End Sub
 
-'Not used
+
+'==============================================================================================================================================
+'                                            DeleteAnimation Function (Currently not used)
+'                                              Delete the animation settings of oldShape
+'==============================================================================================================================================
 Sub DeleteAnimation(oldShape As Shape)
-    ' Delete the animation settings of oldShape
     
 #If PLATFORM = PowerPoint Then
-    'With ActiveWindow.Selection.SlideRange(1).TimeLine
     With osld.TimeLine
         For i = .MainSequence.Count To 1 Step -1
             Dim eff As Effect
@@ -274,9 +416,9 @@ End Sub
 
 
 
-'''''==============================================================================================================================================
-'''''                                            Plateform-independent Helper Functions
-'''''==============================================================================================================================================
+'==============================================================================================================================================
+'                                            Plateform-independent Helper Functions
+'==============================================================================================================================================
 
 
 Sub AddTagsToShape(vSh As Shape, code As String, FilePrefix As String)
@@ -285,6 +427,10 @@ Sub AddTagsToShape(vSh As Shape, code As String, FilePrefix As String)
 End Sub
 
 
+'==============================================================================================================================================
+'                                          RecordGroupHierarchy_and_Ungroup Function (for MS Word (without using CurShape.GroupItems()))
+'                       Record group hierarchy information of current shape and recursively ungroup these groups
+'==============================================================================================================================================
 Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As String, TargetSelectionName As String, ShapeNames As Collection, Layers As Collection, GroupNames As Collection) As Long
     ' This function expects to receive a grouped or ungrouped Shape (CurShape)
     ' We ungroup to reveal the structure at the layer below, and then regroup the groups which do not contain the target LaTeX shape.
@@ -293,9 +439,10 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
     '   ShapeNames is the list of names of (leaf) elements in this group
     '   TargetName is the display which is being modified. We're going down the branch containing it.
     
-    
-    'MsgBox "In RecordGroupHierarchy_and_Ungroup()" 'DEBUG
-    'MsgBox "CurShape.Name=" & CurShape.Name 'DEBUG
+    ''====================================================================================== BEGIN DEBUG ======================================================================================
+    'MsgBox "In RecordGroupHierarchy_and_Ungroup()"
+    'MsgBox "CurShape.Name=" & CurShape.Name
+    ''====================================================================================== END DEBUG ======================================================================================
     
     Dim ToBeRegrouped_Now As Boolean
     ToBeRegrouped_Now = True
@@ -321,14 +468,8 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
         GroupNames.Add CurShapeName, CurShapeName
         
     Else
-        
-        'TODO: if TargetSelectionName <> InvalidName  =>  已經找到Target Shape了，不用再ungroup了
-        ' This function expects to receive a grouped Shape
-        ' We ungroup to reveal the structure at the layer below,
-        ' and we need to go further down, since the element being
-        ' edited is still within a group
-        
-        'MsgBox "CurShape.Type = msoGroup" 'DEBUG
+        ' If received a grouped Shape, we ungroup it to reveal the structure at the layer below,
+        ' since the element being edited is still within a group
         
         CurShape.Ungroup
         
@@ -341,7 +482,9 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
         FoundTarget = False
         
         For Each s In Sel.ShapeRange
-            'MsgBox "s.Name=" & s.Name 'DEBUG
+            ''====================================================================================== BEGIN DEBUG ======================================================================================
+            'MsgBox "s.Name=" & s.Name
+            ''====================================================================================== END DEBUG ======================================================================================
         
             If s.Name <> TargetName Then
                 ShapeNames.Add s.Name
@@ -360,20 +503,20 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
         
         
         ' Reveal the structure at the layer below:
-        '   Hierachically ungroup the groups at the layer below, and then regroup the groups which do not contain the target LaTeX shape.
-        Dim ShapeNames_Tmp As New Collection  ' shapes in the temporary group
-        Dim Layers_Tmp As New Collection
-        Dim GroupNames_Tmp As New Collection
+        ' Hierachically ungroup the groups at the layer below, and then regroup the groups which do not contain the target LaTeX shape.
         
+        Dim ShapeNames_Tmp As New Collection  ' shapes in the temporary group
         Dim ShapeNames_In As New Collection   ' shapes in the same group
         Dim ShapeNames_Out As New Collection  ' shapes not in the same group
+        Dim Layers_Tmp As New Collection
         Dim Layers_in As New Collection
         Dim Layers_Out As New Collection
+        Dim GroupNames_Tmp As New Collection
         Dim GroupNames_in As New Collection
         Dim GroupNames_Out As New Collection
 
 
-        If FoundTarget Then '[TODO]: Optimization
+        If FoundTarget Then ' Optimization
             For Each n In ShapeNames
                 ShapeNames_Out.Add n
             Next
@@ -393,10 +536,10 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
                 MaxGroupLevel_Tmp = RecordGroupHierarchy_and_Ungroup(SelShape_Tmp, TargetName, TargetSelectionName, ShapeNames_Tmp, Layers_Tmp, GroupNames_Tmp)
                 
                 ' Check if SelShape_Tmp is a group and contains target shape (with return value MaxGroupLevel_Tmp=ToBeRegroupedLevel)
-                'If MaxGroupLevel_Tmp <> ToBeRegroupedLevel Then  '其實只要做這個判斷就好，但分開不同case有助於除錯
+                'If MaxGroupLevel_Tmp <> ToBeRegroupedLevel Then  'Actually we need this if statement only, but these multiple levels of if statements help us debug easily
                 If IsGroup_Tmp Then
                     If MaxGroupLevel_Tmp <> ToBeRegroupedLevel Then
-                        ' 含有Target Shape (with TargetName)  =>  加入ShapeNames_In、Layers_In、GroupNames_In
+                        ' Contains Target Shape (with TargetName)  =>  Add to ShapeNames_In、Layers_In、GroupNames_In
                         ToBeRegrouped_Now = False
                         RecordGroupHierarchy_and_Ungroup_In = MaxGroupLevel_Tmp
                         
@@ -406,8 +549,8 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
                             GroupNames_in.Add GroupNames_Tmp(n_Tmp), n_Tmp
                         Next
                     Else
-                        ' 維持ToBeRegrouped_Now的目前狀態
-                        ' 加入ShapeNames_Out、Layers_Out、GroupNames_Out
+                        ' Maintains current state of ToBeRegrouped_Now
+                        ' Add to ShapeNames_Out、Layers_Out、GroupNames_Out
                         ShapeNames_Out.Add n
                         
                         Debug.Assert (MaxGroupLevel_Tmp = 1)
@@ -418,7 +561,7 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
                     End If
                     
                 Else
-                    ' 加入ShapeNames_Out、Layers_Out、GroupNames_Out
+                    ' Add to ShapeNames_Out、Layers_Out、GroupNames_Out
                     ShapeNames_Out.Add n
                         
                     Debug.Assert (MaxGroupLevel_Tmp = 1)
@@ -453,7 +596,7 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
             Set newGroup = sld.Shapes.Range(ToArray(ShapeNames_Out)).Group()
             newGroup.Name = CurShapeName
             
-            ' 不要把ShapeNames_Out、Layers_Out、GroupNames_Out中的Child Names放入
+            ' We don't need the Child Names of ShapeNames_Out, Layers_Out, and GroupNames_Out.
             ShapeNames.Add newGroup.Name
             Layers.Add 1, newGroup.Name
             GroupNames.Add newGroup.Name, newGroup.Name
@@ -463,7 +606,7 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
             RecordGroupHierarchy_and_Ungroup = 1
             
         Else
-            ' 把ShapeNames_Out、Layers_Out、GroupNames_Out合併進來
+            ' Combine with ShapeNames_Out, Layers_Out, and GroupNames_Out
             For Each n In ShapeNames_Out
                 ShapeNames.Add n
                 Layers.Add RecordGroupHierarchy_and_Ungroup_In, n
@@ -482,11 +625,23 @@ Function RecordGroupHierarchy_and_Ungroup(CurShape As Shape, TargetName As Strin
     
 End Function
 
-'TODO: In PowerPoint & Excel, we can use the old version as the faster version!
-'TODO: Remember group names in GroupNames
+
+'==============================================================================================================================================
+'                                       RecordGroupHierarchy_and_Ungroup_Fast Function (for MS PowerPoint))
+'                       Record group hierarchy information of current shape and recursively ungroup these groups
+'==============================================================================================================================================
 Function RecordGroupHierarchy_and_Ungroup_Fast(ShapeNames As Variant, TargetName As String, Layers As Collection, SelectionNames As Collection) As Long
-    ' ShapeNames is the list of names of (leaf) elements in this group
-    ' TargetName is the display which is being modified. We're going down the branch containing it.
+    ' This function expects to receive a grouped ShapeRange (Sel.ShapeRange)
+    ' We ungroup to reveal the structure at the layer below, and then regroup the groups which do not contain the target LaTeX shape.
+    '
+    ' Arguments:
+    '   ShapeNames is the list of names of (leaf) elements in this group
+    '   TargetName is the display which is being modified. We're going down the branch containing it.
+    
+    
+    '[TODO]: Remember group names in GroupNames
+
+
     ActiveWindow.Selection.SlideRange.Shapes(TargetName).Select
     Set Sel = Application.ActiveWindow.Selection
     
@@ -500,7 +655,7 @@ Function RecordGroupHierarchy_and_Ungroup_Fast(ShapeNames As Variant, TargetName
         ' Get the name of the Target group in which it is
         TargetGroupName = Sel.ShapeRange(1).Name
         
-        Dim ShapeNames_In As New Collection ' shapes in the same group
+        Dim ShapeNames_In As New Collection  ' shapes in the same group
         Dim ShapeNames_Out As New Collection ' shapes not in the same group
         
         ' Split range according to whether elements are in the same group or not
@@ -515,7 +670,8 @@ Function RecordGroupHierarchy_and_Ungroup_Fast(ShapeNames As Variant, TargetName
                 Else
                     ShapeNames_Out.Add n
                 End If
-            Else ' object not in group, so it can't be in the same group as Target
+            Else
+                ' object not in group, so it can't be in the same group as Target
                 ShapeNames_Out.Add n
             End If
         Next

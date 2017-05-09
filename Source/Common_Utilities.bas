@@ -1,7 +1,47 @@
 Attribute VB_Name = "Common_Utilities"
-'''''==============================================================================================================================================
-'''''                                            Platform-independent Functions
-'''''==============================================================================================================================================
+' 2017(c) TeX4Office
+' Developer: Cheng-Kuan Wei
+' URL: https://github.com/kennywei815/tex4office
+'
+' Licensed to the Apache Software Foundation (ASF) under one
+' or more contributor license agreements.  See the NOTICE file
+' distributed with this work for additional information
+' regarding copyright ownership.  The ASF licenses this file
+' to you under the Apache License, Version 2.0 (the
+' "License"); you may not use this file except in compliance
+' with the License.  You may obtain a copy of the License at
+'
+'   http://www.apache.org/licenses/LICENSE-2.0
+'
+' This file incorporates work from Jonathan Le Roux and Zvika
+' Ben-Haim's IguanaTeX project which is originally released
+' under the Creative Commons Attribution 3.0 License; you may
+' not use this file except in compliance with the License.
+' You may obtain a copy of the License at
+'
+'   https://creativecommons.org/licenses/by/3.0/
+'
+' Unless required by applicable law or agreed to in writing,
+' software distributed under the License is distributed on an
+' "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+' KIND, either express or implied.  See the License for the
+' specific language governing permissions and limitations
+' under the License.
+
+
+
+
+'*****************************************************************************
+'                         Common_Utilities Module
+'                  Implements some commonly used utilities
+'*****************************************************************************
+
+
+
+
+'==============================================================================================================================================
+'                                            Platform-independent Functions
+'==============================================================================================================================================
 Sub AddMenuItem(itemText As String, itemCommand As String, itemFaceId As Long)
     ' Check if we have already added the menu item
     Dim initialized As Boolean
@@ -10,6 +50,7 @@ Sub AddMenuItem(itemText As String, itemCommand As String, itemFaceId As Long)
     bef = 1
     Dim Menu As CommandBars
     Set Menu = Application.CommandBars
+    
     For i = 1 To Menu("Insert").Controls.Count
         With Menu("Insert").Controls(i)
             If .Caption = itemText Then
@@ -32,6 +73,7 @@ Sub AddMenuItem(itemText As String, itemCommand As String, itemFaceId As Long)
         NewControl.OnAction = itemCommand
         NewControl.Style = msoButton
     End If
+    
 End Sub
 
 
@@ -81,7 +123,7 @@ Sub WriteLaTeXToFile(code As String, TempDir As String, FilePrefix As String)
         .Charset = "utf-8"
         .Open
         .WriteText code
-        '.SaveToFile TempDir & FilePrefix & ".tex", 2 'Save binary data To disk; problem: this includes a BOM
+        
         ' Workaround to avoid BOM in file:
         .Position = 3 'skip BOM
         .CopyTo BinaryStream
@@ -182,13 +224,14 @@ Function ToArray(c As Collection) As Variant
 End Function
 
 Function RunCmd(strCMD As String, Optional waitOnReturn As Boolean = True, Optional windowStyle As Integer = 1)
-    '若無法執行，須引用 "Windows Script Host Object Model"
-    ' (工具 > 設定引用項目 >勾選)
-    ' 使用 WScript.Shell 方式
-    ' 參數：
-    ' strCMD 執行字串
-    ' windowStyle 視窗樣式，1為顯示 0不顯示
-    ' waitOnReturn 是否等待返回
+    ' Prerequisite: need to import "Windows Script Host Object Model"  (in "Tools" -> "References...")
+    '
+    ' using WScript.Shell
+    '
+    ' Arguments:
+    '   strCMD:       command to be executed
+    '   windowStyle:  window style: 1 means showing-up, while 0 means hiding
+    '   waitOnReturn: wait for the command
     
     Dim wsh As Object
     Set wsh = VBA.CreateObject("WScript.Shell")
@@ -199,13 +242,13 @@ Function RunCmd(strCMD As String, Optional waitOnReturn As Boolean = True, Optio
     If errorCode = 0 Then
  '       MsgBox "OK!"
     Else
-        MsgBox "執行錯誤" & vbCrLf & "代碼：" & errorCode & vbCrLf & "執行程式：" & strCMD
+        MsgBox "Error" & vbCrLf & "Code：" & errorCode & vbCrLf & "Command：" & strCMD
         Exit Function
     End If
     Exit Function
     
 ErrZone:
-    MsgBox "WScript.Shell發生錯誤：" & vbCrLf & Err.Number & ":" & Err.Description
+    MsgBox "WScript.Shell encounters error：" & vbCrLf & Err.Number & ":" & Err.Description
 Resume Next
 
 End Function
